@@ -103,8 +103,15 @@ class Fig:
     def bus(self, x1, y1, x2, y2, color, sw=8):
         self.line(x1, y1, x2, y2, color, sw)
 
-    def branch(self, x1, y1, x2, y2, color, sw=4, label="", lfs=10, loy=-9):
-        self.line(x1, y1, x2, y2, color, sw, True, label, lfs, color, 0, loy)
+    def branch(self, x1, y1, x2, y2, color, sw=4, label="", lfs=10,
+               lcolor=None, lox=0, loy=-9):
+        """Rail branch: coloured arrow with an optional voltage/current label.
+
+        Takes the same optional label arguments as ``line`` so callers do not
+        have to remember a shorter signature.
+        """
+        self.line(x1, y1, x2, y2, color, sw, True, label, lfs,
+                  lcolor or color, lox, loy)
 
     def link(self, x1, y1, x2, y2, bus, label, sw=2.4, lfs=10):
         """Bus link in a block diagram: coloured arrow + white-backed label."""

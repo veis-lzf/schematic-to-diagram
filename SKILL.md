@@ -58,6 +58,24 @@ matches the language of the request; the rules are identical.
    labels, ambiguous arrow direction, disconnected endpoints, and crossings
    that obscure the intended flow. Fix the figure definition and rebuild.
 
+## Required Level of Detail
+
+The bundled examples are **finished figures, not sketches** - copy one and keep
+its density. A thin, three-box draft is the most common way a run goes wrong,
+so calibrate against the examples before considering the figure done:
+
+| Figure | Expected content |
+| --- | --- |
+| Power tree | every input source; the charger with its charge path and switch; one rail per voltage domain; **every** converter stage; **every** load with its per-branch current label; the sub-board sub-tree; the voltage-domain legend |
+| Block diagram | board regions and the connector band; **every** controller and subsystem block with its interface list; one labelled link per bus; the shared-bus legend; the title block |
+
+Concretely, a delivered figure of this family carries roughly 30 device boxes,
+35+ links and 10+ labelled branches on a 2200 px canvas. If the result has a
+handful of generic boxes such as "SoC", "MCU" or "Wi-Fi module" where the
+schematic gives real part numbers, it is under-specified: go back to the
+page PNGs and the text dump and fill in the actual refdes, values, rail names
+and bus indices.
+
 ## Hard Rules for Every Figure
 
 These came out of real review feedback; breaking one means redoing the figure.
