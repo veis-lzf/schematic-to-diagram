@@ -14,6 +14,10 @@ Output follows a fixed house style. Read
 figure; it holds the hard rules, the voltage/bus colour tables, and the
 pre-flight checklist.
 
+The same standard is available in English at
+[references/style-guide.en.md](references/style-guide.en.md). Use whichever
+matches the language of the request; the rules are identical.
+
 ## Workflow
 
 1. If the input is a PDF, run:

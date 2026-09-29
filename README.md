@@ -34,7 +34,8 @@ python scripts/build.py my_power_tree.py --out out --name my_power_tree
 
 ## 绘图规范
 
-完整规范见 [references/style-guide.md](references/style-guide.md)，核心硬性规则：
+完整规范：[中文](references/style-guide.md) ／ [English](references/style-guide.en.md)。
+核心硬性规则：
 
 - 连线不允许断开（母线两端必须落在分支点或器件上）
 - 不允许交叉；跨板长线走连接器条带中转
@@ -48,7 +49,9 @@ python scripts/build.py my_power_tree.py --out out --name my_power_tree
 ```
 schematic-to-diagram/
 ├── SKILL.md                    工作流、硬性规则、验证清单
-├── references/style-guide.md   完整绘图规范
+├── references/
+│   ├── style-guide.md          完整绘图规范（中文）
+│   └── style-guide.en.md       same standard in English
 ├── scripts/
 │   ├── diagramlib.py           渲染库（Fig + SVG/VSDX/VDX 导出器）
 │   ├── build.py                命令行入口

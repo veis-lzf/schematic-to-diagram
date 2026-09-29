@@ -1,5 +1,7 @@
 # 电源树 / 系统框图 绘图规范
 
+English version: [style-guide.en.md](style-guide.en.md)
+
 这套规则来自多次评审收敛的结果；违背其中任何一条都会让图变得不可读。
 出图前逐条自检，不合格就改图重出。
 
