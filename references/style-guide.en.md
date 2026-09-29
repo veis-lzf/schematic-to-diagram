@@ -25,6 +25,7 @@ Chinese version: [style-guide.md](style-guide.md)
 5. **Labels never straddle a line.** Give any label longer than ~60 px a white
    backing (`text(..., bg=True)`).
 6. **Shared buses get an index and a colour** - see section 5.
+7. **Verify who actually drives each control line** - see section 5.1.
 
 ## 2. Geometry and Palette
 
@@ -104,6 +105,39 @@ corner "bus groups" legend.
   `I2C-1 + INT (shared)` or `SPI-1 (SFC0, exclusive)`.
 - Mirror the index inside the device box subtitle (for example
   `I2C-2 slave + INT`) so a device can be traced back to its bus.
+
+### 5.1 Control-signal ownership (the easiest thing to get wrong)
+
+**A control or status net belongs to the device that actually drives or reads
+it, not to whichever device "ought" to own it.** Trace the net to a specific
+page and reference designator before drawing the link; never infer it from
+what a signal name sounds like.
+
+Mistakes already made on this family of drawings:
+
+| Net | Naive guess | Actual owner |
+| --- | --- | --- |
+| `WIFI_IRCUT_FBC` (IR-CUT driver) | SoC (as a PWM pin) | **Wi-Fi module** (routed over the connector to U19 SA1511 on the other board) |
+| `WIFI_WHITE_LED` / `WIFI_IR_LED` (fill light) | SoC GPIO | **Wi-Fi module** |
+| `WiFi_LDR_ADC` / `LIDAR_ADC_PWR_EN` (light sensor) | SoC ADC / GPIO | **Wi-Fi module** |
+| `APT_LOG_TX_Tamper_HALL` (tamper hall) | SoC GPIO | **APT32S1028** (I/O expander MCU) |
+| `KEY_CONFIG` / `WHOLE_SYSTEM_POWERON` (rocker switch, config key) | SoC, or the same board | **Q1 / APT32S1028 on the opposite board**, over the connector |
+
+Anti-pattern: wiring a device straight to the SoC because the signal "looks
+like a GPIO", or because the device happens to sit on the SoC's board.
+**Which board a part is on and which device controls it are two different
+questions** - the first row above is a part on the SoC board controlled by the
+Wi-Fi module.
+
+How to verify:
+
+1. Search the text layer for the net name and note **every** page it appears on.
+2. Open the page where it meets a device pin and read the pin name plus the
+   port arrow direction (`>>` out, `<<` in).
+3. If the net also appears on a connector page it is cross-board: draw a
+   matching stub on both sides of the connector band with the same index.
+4. Only draw the link once you have reached the driving end. If it is still
+   unclear, mark it "to be confirmed" rather than defaulting to the SoC.
 
 ## 6. Extracting the Data from a Schematic
 

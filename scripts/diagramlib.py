@@ -26,11 +26,13 @@ BLUE_F = "#DEEBF7"
 INK = "#1F2933"
 GRAY = "#64748B"
 AMBER_D = "#7F6000"
+WIFI = "#D6009A"   # 外设控制/状态由无线模组而非主控承担时使用
 
 # bus-type colours (see references/style-guide.md)
 BUS = {"MIPI": "#00A0A0", "SPI": "#7030A0", "I2C": "#ED7D31",
        "UART": "#00A651", "SDIO": "#0070C0", "USB": "#2E75B6",
-       "GPIO": "#7F7F7F", "AUDIO": "#C55A11", "PWR": "#C00000"}
+       "GPIO": "#7F7F7F", "AUDIO": "#C55A11", "PWR": "#C00000",
+       "WIFI": WIFI}
 
 
 def _esc(s):

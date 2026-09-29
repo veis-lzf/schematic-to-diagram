@@ -94,6 +94,13 @@ These came out of real review feedback; breaking one means redoing the figure.
   carries several devices, number it (`I2C-1`, `I2C-2`, ...), colour every
   segment of that bus the same, label the line with the index plus a
   shared/exclusive tag, and add a bus-group legend box.
+- **Verify control-signal ownership before drawing a link.** A control or
+  status net belongs to the device that actually drives or reads it - not to
+  the main SoC by default, and not to the board the part happens to sit on.
+  Trace the net to a page and refdes first. LED / IR-CUT / light-sensor
+  controls are routinely owned by a wireless module, and mechanical or tamper
+  inputs are often read by an I/O expander. Section 5.1 of the style guide
+  lists the traps already hit on this project.
 
 ## Verifying a Figure
 
