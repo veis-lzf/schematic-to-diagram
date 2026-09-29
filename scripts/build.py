@@ -18,7 +18,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
-from diagramlib import export  # noqa: E402
+from diagramlib import export, validate  # noqa: E402
 
 
 def load_figure(path):
@@ -39,10 +39,19 @@ def main(argv=None):
     ap.add_argument("--title", default=None, help="Visio page name")
     ap.add_argument("--scale", type=float, default=1.4, help="PNG pixel scale")
     ap.add_argument("--no-png", action="store_true", help="skip rasterising")
+    ap.add_argument("--strict", action="store_true",
+                    help="exit non-zero when the figure violates the style rules")
     a = ap.parse_args(argv)
 
     mod = load_figure(a.figure)
     fig = mod.build()
+    problems = validate(fig)
+    if problems:
+        print("style check: %d problem(s)" % len(problems))
+        for p in problems:
+            print("  !", p)
+    else:
+        print("style check: clean (no dangling ends, no crossings)")
     name = a.name or getattr(mod, "NAME",
                              os.path.splitext(os.path.basename(a.figure))[0])
     title = a.title or getattr(mod, "TITLE", name)
@@ -50,7 +59,7 @@ def main(argv=None):
     print("shapes: %d" % len(fig.items))
     for p in made:
         print("  ->", p)
-    return 0
+    return 1 if (problems and a.strict) else 0
 
 
 if __name__ == "__main__":

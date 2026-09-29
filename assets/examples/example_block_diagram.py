@@ -87,14 +87,15 @@ def build():
         f.line(dx, 660, dx, 710, col, SW, True)
         f.text(dx + 10, 692, "%s 经 BTB" % tag, 10, col, True, "left", True)
 
-    # T23ZN 自身的跨板信号：从右边缘引出后向下进条带
-    f.line(1340, 470, 1470, 470, BUS["GPIO"], SW)
-    f.line(1470, 470, 1470, 710, BUS["GPIO"], SW, True)
-    f.text(1480, 462, "① GPIO / 音频 / 状态", 10, BUS["GPIO"], True, "left",
+    # T23ZN 自身的跨板信号：从右边缘引出后向下进条带。
+    # 先出的那一路要拐得更远，否则后一路的水平段会穿过它的竖直段。
+    f.line(1340, 470, 1505, 470, BUS["GPIO"], SW)
+    f.line(1505, 470, 1505, 710, BUS["GPIO"], SW, True)
+    f.text(1516, 462, "① GPIO / 音频 / 状态", 10, BUS["GPIO"], True, "left",
            True)
-    f.line(1340, 520, 1505, 520, BUS["SDIO"], SW)
-    f.line(1505, 520, 1505, 710, BUS["SDIO"], SW, True)
-    f.text(1516, 512, "② SDIO-1", 10, BUS["SDIO"], True, "left", True)
+    f.line(1340, 520, 1470, 520, BUS["SDIO"], SW)
+    f.line(1470, 520, 1470, 710, BUS["SDIO"], SW, True)
+    f.text(1481, 512, "② SDIO-1", 10, BUS["SDIO"], True, "left", True)
 
     # ================= 中间：板对板连接器条带 =================
     f.rect(30, 710, 2140, 120, "", "#FFF8E6", "#D97706", 1.2, 10, INK,
@@ -137,7 +138,7 @@ def build():
     f.text(452, 876, "① WHOLE_SYSTEM_POWERON", 10, BUS["GPIO"], True, "left",
            True)
 
-    f.rect(800, 890, 400, 620,
+    f.rect(800, 890, 400, 770,
            "RTL8762C\nBLE 主控\n\nBLE 5.x\n40MHz 晶振\nANT1 IPEX\n\n"
            "I2C-1 / I2C-2 / I2C-3 主控\nUART-2 / UART-3\nGPIO / PWM",
            BLUE_F, BLUE, 2.4, 16, "#1F4E79", True, 6)

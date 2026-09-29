@@ -68,11 +68,14 @@ class Fig:
                                bold=bold, round=round_r, align=align))
 
     def line(self, x1, y1, x2, y2, color="#000000", sw=1.0, arrow=False,
-             label="", lfs=10, lcolor=None, lox=0, loy=0, dash=False):
+             label="", lfs=10, lcolor=None, lox=0, loy=0, dash=False,
+             deco=False):
+        """One line segment. ``deco`` marks decoration (legend swatches) that
+        the validator should not treat as a net."""
         self.items.append(dict(t="line", x1=x1, y1=y1, x2=x2, y2=y2,
                                color=color, sw=sw, arrow=arrow, label=label,
                                lfs=lfs, lcolor=lcolor or color, lox=lox,
-                               loy=loy, dash=dash))
+                               loy=loy, dash=dash, deco=deco))
 
     def poly(self, pts, color="#000000", sw=1.0, arrow=True, dash=False):
         """Orthogonal polyline: arrowheads only on the final segment."""
@@ -126,7 +129,7 @@ class Fig:
         self.text(x + 16, y + 22, title, 13, INK, True)
         for i, (col, txt) in enumerate(entries):
             yy = y + 50 + i * row_h
-            self.line(x + 16, yy, x + 58, yy, col, sw)
+            self.line(x + 16, yy, x + 58, yy, col, sw, deco=True)
             self.text(x + 66, yy + 4, txt, 11, INK)
 
     def legend_box_2col(self, x, y, w, h, title, left, right, sw=3, row_h=28):
@@ -135,11 +138,11 @@ class Fig:
         mid = x + w * 0.46
         for i, (col, txt) in enumerate(left):
             yy = y + 50 + i * row_h
-            self.line(x + 16, yy, x + 58, yy, col, sw)
+            self.line(x + 16, yy, x + 58, yy, col, sw, deco=True)
             self.text(x + 66, yy + 4, txt, 11, INK)
         for i, (col, txt) in enumerate(right):
             yy = y + 50 + i * row_h
-            self.line(mid, yy, mid + 42, yy, col, sw)
+            self.line(mid, yy, mid + 42, yy, col, sw, deco=True)
             self.text(mid + 50, yy + 4, txt, 11, INK)
 
     def title_block(self, x, y, w, h, rows, title, subtitle=""):
@@ -385,6 +388,141 @@ class Fig:
 
 
 # --------------------------------------------------------------- exporters --
+def _seg_point_dist(px, py, x1, y1, x2, y2):
+    dx, dy = x2 - x1, y2 - y1
+    L2 = dx * dx + dy * dy
+    if L2 == 0:
+        return ((px - x1) ** 2 + (py - y1) ** 2) ** 0.5
+    t = ((px - x1) * dx + (py - y1) * dy) / L2
+    t = 0.0 if t < 0 else (1.0 if t > 1 else t)
+    return ((px - (x1 + t * dx)) ** 2 + (py - (y1 + t * dy)) ** 2) ** 0.5
+
+
+def _seg_intersect(a, b):
+    """Intersection point of two segments, or None."""
+    x1, y1, x2, y2 = a
+    x3, y3, x4, y4 = b
+    d = (x2 - x1) * (y4 - y3) - (y2 - y1) * (x4 - x3)
+    if abs(d) < 1e-9:
+        return None
+    t = ((x3 - x1) * (y4 - y3) - (y3 - y1) * (x4 - x3)) / d
+    u = ((x3 - x1) * (y2 - y1) - (y3 - y1) * (x2 - x1)) / d
+    if -1e-9 <= t <= 1 + 1e-9 and -1e-9 <= u <= 1 + 1e-9:
+        return (x1 + t * (x2 - x1), y1 + t * (y2 - y1))
+    return None
+
+
+def validate(fig, tol=2.0, verbose=False):
+    """Check a figure against the house-style hard rules.
+
+    Returns a list of human-readable problems. The checks are:
+
+    * **dangling end** - a segment endpoint that lands on nothing (not on a
+      box edge, not on another segment)
+    * **endpoint inside a box** - a segment ends in a box's interior
+    * **crossing** - two segments cross through each other (a T-junction where
+      one segment simply ends on the other is fine)
+    * **through a box** - a segment passes straight through a device box
+
+    Decoration (legend swatches, marked with ``deco=True``) is ignored.
+    """
+    rects = [i for i in fig.items if i["t"] == "rect" and i["stroke"]]
+    # boxes carrying a label are devices; unlabelled large rects are frames
+    # (board outlines, connector band, legend panel) and may be entered
+    devices = [r for r in rects if (r["text"] or "").strip()]
+    lines = [i for i in fig.items if i["t"] == "line" and not i.get("deco")]
+    problems = []
+
+    def edges(r):
+        return (r["x"], r["y"], r["x"] + r["w"], r["y"] + r["h"])
+
+    def on_box_edge(x, y):
+        for r in rects:
+            x0, y0, x1, y1 = edges(r)
+            if not (x0 - tol <= x <= x1 + tol and y0 - tol <= y <= y1 + tol):
+                continue
+            if (abs(x - x0) <= tol or abs(x - x1) <= tol
+                    or abs(y - y0) <= tol or abs(y - y1) <= tol):
+                return r
+        return None
+
+    def inside_box(x, y):
+        for r in devices:
+            x0, y0, x1, y1 = edges(r)
+            if (x0 + tol < x < x1 - tol) and (y0 + tol < y < y1 - tol):
+                return r
+        return None
+
+    def on_other_line(idx, x, y):
+        for j, l in enumerate(lines):
+            if j == idx:
+                continue
+            if _seg_point_dist(x, y, l["x1"], l["y1"],
+                               l["x2"], l["y2"]) <= tol:
+                return True
+        return False
+
+    def name(l):
+        return l.get("label") or "%s->%s" % (
+            (round(l["x1"]), round(l["y1"])), (round(l["x2"]), round(l["y2"])))
+
+    for i, l in enumerate(lines):
+        for x, y, which in ((l["x1"], l["y1"], "start"),
+                            (l["x2"], l["y2"], "end")):
+            box = inside_box(x, y)
+            if box is not None:
+                problems.append("endpoint inside a box: %s %s at (%g,%g) in %r"
+                                % (name(l), which, x, y,
+                                   (box["text"] or "")[:24]))
+                continue
+            if on_box_edge(x, y) is None and not on_other_line(i, x, y):
+                problems.append("dangling end: %s %s at (%g,%g)"
+                                % (name(l), which, x, y))
+
+    # crossings between nets
+    for i in range(len(lines)):
+        a = lines[i]
+        for j in range(i + 1, len(lines)):
+            b = lines[j]
+            p = _seg_intersect((a["x1"], a["y1"], a["x2"], a["y2"]),
+                               (b["x1"], b["y1"], b["x2"], b["y2"]))
+            if p is None:
+                continue
+            end_a = (abs(p[0] - a["x1"]) <= tol and abs(p[1] - a["y1"]) <= tol) \
+                or (abs(p[0] - a["x2"]) <= tol and abs(p[1] - a["y2"]) <= tol)
+            end_b = (abs(p[0] - b["x1"]) <= tol and abs(p[1] - b["y1"]) <= tol) \
+                or (abs(p[0] - b["x2"]) <= tol and abs(p[1] - b["y2"]) <= tol)
+            if end_a or end_b:
+                continue                       # T-junction or shared node
+            problems.append("crossing: %s x %s at (%g,%g)"
+                            % (name(a), name(b), p[0], p[1]))
+
+    # nets passing through a box
+    for l in lines:
+        for r in devices:
+            x0, y0, x1, y1 = edges(r)
+            p1 = (l["x1"], l["y1"])
+            p2 = (l["x2"], l["y2"])
+            in1 = (x0 + tol < p1[0] < x1 - tol) and (y0 + tol < p1[1] < y1 - tol)
+            in2 = (x0 + tol < p2[0] < x1 - tol) and (y0 + tol < p2[1] < y1 - tol)
+            if in1 or in2:
+                continue                       # already reported above
+            hits = 0
+            for k in range(1, 40):
+                t = k / 40.0
+                x = l["x1"] + t * (l["x2"] - l["x1"])
+                y = l["y1"] + t * (l["y2"] - l["y1"])
+                if (x0 + tol < x < x1 - tol) and (y0 + tol < y < y1 - tol):
+                    hits += 1
+            if hits:
+                problems.append("nets pass through a box: %s through %r"
+                                % (name(l), (r["text"] or "")[:24]))
+    if verbose:
+        for p in problems:
+            print("   !", p)
+    return problems
+
+
 def write_vsdx(fig, path, title):
     ct = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
           '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'

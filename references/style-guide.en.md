@@ -156,6 +156,7 @@ How to verify:
 
 ## 7. Pre-flight Checklist
 
+- [ ] `build.py` reports `style check: clean`
 - [ ] Every line ends on a device, another line, or a connector - no loose ends
 - [ ] No diagonals; everything is orthogonal
 - [ ] No crossings, including long cross-board nets
@@ -165,3 +166,28 @@ How to verify:
       explains the grouping
 - [ ] Voltage-domain colours match the legend
 - [ ] SVG / PNG / VSDX / VDX are all regenerated and in sync
+
+### 7.1 Automated check (mandatory)
+
+Eyeballing alone reliably misses things - on this project a link that "looked
+connected" was in fact floating, and two cross-board nets passed through each
+other. `diagramlib.validate()` turns these rules into a machine check and
+`build.py` runs it on every build:
+
+```
+style check: clean (no dangling ends, no crossings)
+```
+
+It checks four things:
+
+1. **dangling ends** - an endpoint must land on a device box edge, a connector
+   band edge, or another segment;
+2. **endpoint inside a box** - the link was placed wrong;
+3. **crossings** - two segments intersecting mid-run (a T-junction, where one
+   segment simply ends on the other, is allowed);
+4. **nets passing through a box** - entering a box, crossing its interior and
+   leaving.
+
+When the build reports problems, fix the figure before delivering it - do not
+ship with warnings outstanding. Add `--strict` in CI or batch runs so a
+warning exits non-zero.

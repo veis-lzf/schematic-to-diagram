@@ -54,6 +54,11 @@ matches the language of the request; the rules are identical.
    python scripts/build.py <figure.py> --out <out-dir> --name <name> --title <title>
    ```
 
+   The build runs `diagramlib.validate()` and prints a style check. **A figure
+   is not done until it reports `style check: clean`** - the check catches
+   dangling endpoints, endpoints inside a box, nets crossing each other, and
+   nets passing through a box. Use `--strict` to make warnings fail the build.
+
 5. Inspect the generated PNG at full size. Check for clipped text, overlapping
    labels, ambiguous arrow direction, disconnected endpoints, and crossings
    that obscure the intended flow. Fix the figure definition and rebuild.
