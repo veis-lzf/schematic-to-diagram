@@ -1,0 +1,4 @@
+interface:
+  display_name: "原理图转框图 / 电源树"
+  short_description: "把原理图 PDF 转成系统框图与电源树，输出 SVG/PNG/Visio"
+  default_prompt: "读取这份原理图 PDF，按 house style 生成系统框图和电源树（SVG/PNG/VSDX/VDX）。"
