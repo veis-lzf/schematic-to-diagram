@@ -44,8 +44,8 @@ matches the language of the request; the rules are identical.
 
    Use the helper methods rather than raw primitives where one fits:
    `converter()` for power-path blocks, `block()` for peripherals,
-   `bus()` / `branch()` for rails, `link()` for a coloured bus arrow with a
-   white-backed label, and `legend_box()` / `legend_box_2col()` /
+   `bus()` / `branch()` for rails, `link()` for a coloured bus arrow with an
+   on-line label, and `legend_box()` / `legend_box_2col()` /
    `title_block()` for the furniture.
 
 4. Build the diagram:
@@ -60,8 +60,9 @@ matches the language of the request; the rules are identical.
    nets passing through a box. Use `--strict` to make warnings fail the build.
 
 5. Inspect the generated PNG at full size. Check for clipped text, overlapping
-   labels, ambiguous arrow direction, disconnected endpoints, and crossings
-   that obscure the intended flow. Fix the figure definition and rebuild.
+   labels, signal direction, control ownership, label-induced line gaps,
+   disconnected endpoints, and crossings that obscure the intended flow. Fix
+   the figure definition and rebuild.
 
 ## Required Level of Detail
 
@@ -94,7 +95,15 @@ These came out of real review feedback; breaking one means redoing the figure.
 - **Arrowheads stay visible.** Keep the fixed-size marker (16 units,
   `userSpaceOnUse`); never let the arrow scale with a thick rail, or it becomes
   a black wedge that swallows the line. Leave roughly 50 px on short branches.
-- **Labels sit on a white backing** (`bg=True`) so they never straddle a line.
+- **Labels never break a line.** Put the label directly on the line with the
+  line's built-in label, or offset it beside the line. A white backing is only
+  allowed when it does not mask or interrupt the net; a visible gap looks like
+  an open circuit.
+- **Arrow direction follows the signal, not the layout.** Trace every one-way
+  control or status net to its driver and receiver before drawing it. For a
+  bidirectional bus (I2C, UART if bidirectional, SDIO data, and similar), do
+  not use a misleading one-way arrow: omit the arrowhead or use a clearly
+  two-way indicator and label it `bidirectional` / `双向`.
 - **Shared buses get an index and a colour.** When one physical I2C/UART bus
   carries several devices, number it (`I2C-1`, `I2C-2`, ...), colour every
   segment of that bus the same, label the line with the index plus a
@@ -103,9 +112,13 @@ These came out of real review feedback; breaking one means redoing the figure.
   status net belongs to the device that actually drives or reads it - not to
   the main SoC by default, and not to the board the part happens to sit on.
   Trace the net to a page and refdes first. LED / IR-CUT / light-sensor
-  controls are routinely owned by a wireless module, and mechanical or tamper
-  inputs are often read by an I/O expander. Section 5.1 of the style guide
-  lists the traps already hit on this project.
+  controls are routinely owned by a wireless module or main-board I/O
+  expander, and mechanical or tamper inputs are often read by an I/O expander
+  even when the sensor sits on another board. In this project, IR-CUT control
+  comes from the main-board IO expander to the SOC-board AP1511B, Hall output
+  returns from the SOC board to the main-board IO expander, and SOC power is
+  enabled from the main board. Section 5.1 of the style guide lists the traps
+  already hit on this project.
 
 ## Verifying a Figure
 

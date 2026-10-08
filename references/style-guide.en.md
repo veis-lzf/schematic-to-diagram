@@ -22,10 +22,16 @@ Chinese version: [style-guide.md](style-guide.md)
    `markerUnits="userSpaceOnUse"`, 16 units) that does **not** scale with the
    line. With an 8 px rail, a scaling arrow becomes a black wedge that swallows
    the line. Leave at least ~50 px of run on a short branch.
-5. **Labels never straddle a line.** Give any label longer than ~60 px a white
-   backing (`text(..., bg=True)`).
-6. **Shared buses get an index and a colour** - see section 5.
-7. **Verify who actually drives each control line** - see section 5.1.
+5. **Arrow direction must follow the signal direction.** Trace every one-way
+   control or status net to its driver and receiver before drawing it. Do not
+   use a misleading one-way arrow on a bidirectional bus; omit the arrowhead or
+   use a clearly two-way indicator and mark it `bidirectional`.
+6. **Labels must not create a gap in a line.** Prefer the line's built-in
+   on-line label (no opaque bbox). If a label is offset beside the line, a white
+   backing may be used, but it must never mask or interrupt the net. A visible
+   gap looks like an open circuit.
+7. **Shared buses get an index and a colour** - see section 5.
+8. **Verify who actually drives each control line** - see section 5.1.
 
 ## 2. Geometry and Palette
 
@@ -72,8 +78,12 @@ Chinese version: [style-guide.md](style-guide.md)
   board below (or two columns side by side). Peripherals sit in two columns.
 - The controller (SoC / MCU) is a **tall blue block** in the centre; each
   peripheral is a **white fill / black outline** box on either side, connected
-  to the controller edge by **one horizontal line** with the bus name on it
-  (white backing).
+  to the controller edge by **one horizontal line** with the bus name directly
+  on it. Do not put an opaque label bbox over the line; offset labels may use a
+  backing only when it leaves the net visually continuous.
+- Direction follows data or control flow. A source-to-receiver control line has
+  one arrowhead at the receiver; a bidirectional bus is labelled
+  `bidirectional` and either has no arrowhead or a clearly two-way indicator.
 - Number the signal groups inside the connector band ((1)(2)(3)). Cross-board
   signals **use the band as an intermediate**: draw a short vertical stub on
   each side rather than running a long net around the sheet.
@@ -122,6 +132,9 @@ Mistakes already made on this family of drawings:
 | `WiFi_LDR_ADC` / `LIDAR_ADC_PWR_EN` (light sensor) | SoC ADC / GPIO | **Wi-Fi module** |
 | `APT_LOG_TX_Tamper_HALL` (tamper hall) | SoC GPIO | **APT32S1028** (I/O expander MCU) |
 | `KEY_CONFIG` / `WHOLE_SYSTEM_POWERON` (rocker switch, config key) | SoC, or the same board | **Q1 / APT32S1028 on the opposite board**, over the connector |
+| `IOEXP-IRCUT-IRLED` / `WIFI_IRCUT_CTRL` (IR-CUT control) | T33ZL, because AP1511B is on the SOC board | **Main-board IO expander** (TPT29555A), over the connector; AP1511B is only the SOC-board driver |
+| `Tamper_HALL` (tamper Hall output) | T33ZL, because KTH1601SH is on the SOC board | **Main-board IO expander**, over the connector; the SOC-board Hall is only the sensor |
+| `SOC_PWR_EN` (SOC power-tree enable) | T33ZL | **Main board / Wi-Fi control path**, over the connector |
 
 Anti-pattern: wiring a device straight to the SoC because the signal "looks
 like a GPIO", or because the device happens to sit on the SoC's board.
@@ -161,7 +174,10 @@ How to verify:
 - [ ] No diagonals; everything is orthogonal
 - [ ] No crossings, including long cross-board nets
 - [ ] Arrowheads are visible, unhidden by lines or boxes, and uniform
-- [ ] Every label has a backing, does not straddle a line, and is not clipped
+- [ ] Every arrow points to the actual driver or receiver; bidirectional buses
+      are not drawn with a misleading one-way arrow
+- [ ] No label creates a visible gap in a net; on-line labels keep the line
+      continuous, and offset labels do not mask any segment
 - [ ] Shared buses are indexed, the index matches the line colour, and a legend
       explains the grouping
 - [ ] Voltage-domain colours match the legend
