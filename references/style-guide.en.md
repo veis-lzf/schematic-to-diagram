@@ -91,6 +91,10 @@ Chinese version: [style-guide.md](style-guide.md)
   so they cannot cross.
 - Put an engineering title block bottom right: drawing name, board/version,
   date, rev, sheet.
+- **Use a fixed footprint for furniture.** The legend box and title block on one
+  sheet must have the same width and height and must not be stretched to fill
+  remaining width. Defaults: A4 landscape `650x160` at `2339x1654`; A3 landscape
+  `900x220` at `3308x2338`.
 
 ## 5. Shared Bus Indexing and Colour
 
@@ -181,6 +185,7 @@ How to verify:
 - [ ] Shared buses are indexed, the index matches the line colour, and a legend
       explains the grouping
 - [ ] Voltage-domain colours match the legend
+- [ ] Legend box and title block share one fixed size and are not stretched
 - [ ] SVG / PNG / VSDX / VDX are all regenerated and in sync
 
 ### 7.1 Automated check (mandatory)

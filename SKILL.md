@@ -108,6 +108,10 @@ These came out of real review feedback; breaking one means redoing the figure.
   carries several devices, number it (`I2C-1`, `I2C-2`, ...), colour every
   segment of that bus the same, label the line with the index plus a
   shared/exclusive tag, and add a bus-group legend box.
+- **Furniture boxes have a fixed footprint.** Within one sheet, the legend box
+  and title block must use the same width and height; never stretch them to fill
+  the remaining width. Default A4 landscape footprint at 2339x1654 is
+  `650x160`; default A3 landscape footprint at 3308x2338 is `900x220`.
 - **Verify control-signal ownership before drawing a link.** A control or
   status net belongs to the device that actually drives or reads it - not to
   the main SoC by default, and not to the board the part happens to sit on.

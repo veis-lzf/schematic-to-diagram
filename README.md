@@ -45,6 +45,7 @@ python scripts/build.py my_power_tree.py --out out --name my_power_tree
 - 标签不得遮断线路：在线标注直接显示，偏移标注才可使用白底且不能遮线
 - 控制 / 状态信号必须追到真实驱动端，不能默认归主控
 - 共用总线（I2C / UART 等）必须编号 + 配色 + 说明框
+- 图例框与标题栏固定同一尺寸，不随空白横向拉长
 
 ## 目录
 
