@@ -4,6 +4,7 @@
 `SVG`（矢量源）、`PNG`（预览）、`VSDX`（Visio 2013+ 可编辑）、`VDX`（Visio 2003–2010）。
 
 一份坐标数据同时驱动四种输出，因此图片和 Visio 文件不会不一致。
+可选把图发布到 **飞书 / Lark 云文档**，并转为可直接编辑的原生画板。
 
 ## 安装
 
@@ -27,6 +28,9 @@ cp assets/examples/example_power_tree.py my_power_tree.py
 
 # 3. 出图
 python scripts/build.py my_power_tree.py --out out --name my_power_tree
+
+# 4.（可选）发布到飞书云文档为原生可编辑画板
+#    见 references/lark-integration.md
 ```
 
 依赖：Poppler（`pdftoppm`，用于光栅化）、`pypdf` 或 `pdfplumber`（文本层）、
@@ -54,11 +58,16 @@ schematic-to-diagram/
 ├── SKILL.md                    工作流、硬性规则、验证清单
 ├── references/
 │   ├── style-guide.md          完整绘图规范（中文）
-│   └── style-guide.en.md       same standard in English
+│   ├── style-guide.en.md       same standard in English
+│   ├── lark-integration.md     飞书云文档 / 原生画板对接流程
+│   └── lark-integration.en.md  same workflow in English
 ├── scripts/
 │   ├── diagramlib.py           渲染库（Fig + SVG/VSDX/VDX 导出器）
 │   ├── build.py                命令行入口
-│   └── pdf_prep.py             PDF → 逐页 PNG + 文本
+│   ├── pdf_prep.py             PDF → 逐页 PNG + 文本
+│   └── lark_board_check.py     飞书画板几何验收（断线 / 非正交 / 嵌入节点）
+├── tests/
+│   └── test_lark_board_check.py 画板几何验收回归测试
 └── assets/examples/            可直接套用的电源树 / 框图模板
 ```
 
@@ -66,3 +75,23 @@ schematic-to-diagram/
 
 `.vsdx` / `.vdx` 由脚本按 OOXML 包结构生成，已校验包内 XML 合法性；
 生成环境若未安装 Visio，则无法在 Visio 中实际打开确认。
+
+## 飞书 / Lark 云文档交付
+
+需要让图在飞书内直接编辑时，不要插入 PNG，改用飞书原生画板：
+
+1. `build.py` 输出 SVG；
+2. 在文档插入 `<whiteboard type="blank">`，取 `block_token`；
+3. 用 `@larksuite/whiteboard-cli` 把 SVG 转成 OpenAPI JSON；
+4. `lark-cli whiteboard +update --overwrite --dry-run` 检查后正式写入；
+5. 回读 `--output_as raw`，运行 `python scripts/lark_board_check.py board.json`；
+6. 回读 `--output_as image` 目视确认无断线、无折行、无遮挡；
+7. 通过后删除旧 PNG 块。
+
+完整命令、硬化规则和验收清单见 [references/lark-integration.md](references/lark-integration.md)。
+
+## 测试
+
+```bash
+python -m unittest discover -s tests -v
+```

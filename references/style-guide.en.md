@@ -32,6 +32,10 @@ Chinese version: [style-guide.md](style-guide.md)
    gap looks like an open circuit.
 7. **Shared buses get an index and a colour** - see section 5.
 8. **Verify who actually drives each control line** - see section 5.1.
+9. **Zero-gap endpoints.** Every arrow tip, trunk end and branch end must land on a target box edge or on another line. A trunk must span the first through the last branch row; a branch below the trunk end is a broken connection. Verify 0 px gaps after converting to a Feishu whiteboard.
+10. **One box per load.** Give every named peripheral/load its own box with its voltage domain and current budget. Do not replace it with a text list inside one large box. A Feishu whiteboard needs separate boxes so each item can be dragged, copied and recoloured.
+11. **Layered tree layout.** When the source-to-rail hierarchy is the main message, lay the power tree out left to right: one hierarchy level per column, ordered top to bottom, with the next level in the next column to the right. Converters, rails and loads each occupy their own column.
+12. **Native Feishu arrows.** When publishing to Feishu, use native connector arrows (`triangle_arrow`), not embedded SVG triangles. Embedded nodes cannot be edited individually and often leave 3-9 px gaps after SVG conversion.
 
 ## 2. Geometry and Palette
 
@@ -71,6 +75,35 @@ Chinese version: [style-guide.md](style-guide.md)
   line.
 - A sub-board fed through a connector gets its own sub-tree, with the feed line
   and the branch arrowheads drawn heavier and longer.
+
+### 3.1 Layered tree layout (recommended)
+
+When the power tree is mainly about the hierarchy from input to converter to
+rail to load, a left-to-right layered tree reads better than one long bus with
+many branches:
+
+```
+input/protection -> 5V distribution -> first-stage converters -> rails -> loads/second-stage -> downstream loads
+```
+
+- **One column per level.** Keep one hierarchy level in one vertical column,
+  ordered top to bottom; align sibling nodes to the same width.
+- **Next level to the right.** Move the next level into the next column; do not
+  stack two levels in one column to save width.
+- **One box per load.** Give every named peripheral its own box, including
+  controllers, buttons, LEDs, segment displays, Flash/PSRAM, debug ports,
+  Wi-Fi/BLE/Thread radios, antenna matching and reserved 1.8 V domains.
+- **Put voltage and current in the box.** Each load box should carry at least
+  `name + function + voltage domain + current budget`, for example
+  `ESP32-S3R8 / Matter Controller / 3.3 V / 0.55 A`.
+- **Full-span trunk.** A trunk must cover the first through the last branch
+  row. If the drawing library emits only a partial trunk, split it into a
+  feeder plus a full-span trunk.
+- **0 px connector landing.** Every arrow tip must land on the target box
+  border; do not hard-code an endpoint 3-9 px short of the edge.
+- **Feishu whiteboard.** Separate load boxes remain individually selectable,
+  draggable, copyable and recolourable; one text list inside a large box is a
+  much worse editing experience.
 
 ## 4. System Block Diagram Conventions
 
@@ -186,6 +219,10 @@ How to verify:
       explains the grouping
 - [ ] Voltage-domain colours match the legend
 - [ ] Legend box and title block share one fixed size and are not stretched
+- [ ] Layered tree: one column per level, top-to-bottom order, next level to the right
+- [ ] Every named peripheral/load has its own box with voltage domain and current budget
+- [ ] Arrow tips and trunk ends land at 0 px on the target box or line; the trunk spans the first through the last branch
+- [ ] Feishu delivery: 0 embedded svg/image nodes and all arrows are native connectors
 - [ ] SVG / PNG / VSDX / VDX are all regenerated and in sync
 
 ### 7.1 Automated check (mandatory)
@@ -212,3 +249,22 @@ It checks four things:
 When the build reports problems, fix the figure before delivering it - do not
 ship with warnings outstanding. Add `--strict` in CI or batch runs so a
 warning exits non-zero.
+
+## 8. Feishu / Lark Cloud Doc and Native Whiteboard
+
+When a system block diagram or power tree must be placed in a Feishu/Lark
+cloud document and remain editable inside Feishu, follow
+[lark-integration.en.md](lark-integration.en.md). Core steps:
+
+1. Build the SVG with `build.py`.
+2. Insert `<whiteboard type="blank">` in the document and capture the `block_token`.
+3. Convert the SVG to OpenAPI JSON with `whiteboard-cli`.
+4. Run `lark-cli whiteboard +update --overwrite --dry-run`, then write for real.
+5. Read back with `lark-cli whiteboard +query --output_as raw` and run
+   `python scripts/lark_board_check.py board.json`.
+6. Inspect `+query --output_as image` for dangling lines, wrapped text and occluded labels.
+7. Delete the old PNG block; keep only the native whiteboard.
+
+Feishu acceptance gates: one box per named load, one column per level,
+next level to the right, native connector arrows, 0 px endpoint gaps and
+0 embedded svg/image nodes.
