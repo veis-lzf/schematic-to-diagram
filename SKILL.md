@@ -170,7 +170,9 @@ exit code does not prove the picture is correct. After every build:
    ```
 
    It must report `clean` with 0 dangling endpoints, 0 non-orthogonal
-   segments and 0 embedded svg/image nodes.
+   segments and 0 embedded svg/image nodes. Also run
+   `python scripts/lark_text_check.py board.json`; it must report
+   `overlaps=0` for text-node bounding boxes.
 
    After changing `scripts/lark_board_check.py`, run
    `python -m unittest discover -s tests -v`.

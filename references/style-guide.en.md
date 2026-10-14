@@ -218,7 +218,7 @@ How to verify:
 - [ ] Shared buses are indexed, the index matches the line colour, and a legend
       explains the grouping
 - [ ] Voltage-domain colours match the legend
-- [ ] Legend box and title block share one fixed size and are not stretched
+- [ ] `lark_text_check.py` reports 0 text-node bounding-box overlaps
 - [ ] Layered tree: one column per level, top-to-bottom order, next level to the right
 - [ ] Every named peripheral/load has its own box with voltage domain and current budget
 - [ ] Arrow tips and trunk ends land at 0 px on the target box or line; the trunk spans the first through the last branch
